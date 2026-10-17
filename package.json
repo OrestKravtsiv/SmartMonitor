@@ -1,0 +1,30 @@
+{
+  "name": "smartmonitor",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview",
+    "lint": "eslint .",
+    "format": "prettier --write \"src/**/*.{ts,css}\" \"*.{js,json,yaml,html}\" .prettierrc.json",
+    "format:check": "prettier --check \"src/**/*.{ts,css}\" \"*.{js,json,yaml,html}\" .prettierrc.json"
+  },
+  "dependencies": {
+    "@firebase/app": "^0.16.3",
+    "@firebase/auth": "^1.13.7",
+    "@firebase/messaging": "^0.13.3",
+    "@vaadin/router": "^2.0.1",
+    "lit": "^3.3.3",
+    "mqtt": "^5.16.0"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "eslint": "^10.12.0",
+    "prettier": "^3.9.10",
+    "typescript": "^5.9.3",
+    "typescript-eslint": "^8.71.2",
+    "vite": "^8.3.0"
+  }
+}
