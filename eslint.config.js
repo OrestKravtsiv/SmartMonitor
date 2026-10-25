@@ -16,5 +16,13 @@ export default tseslint.config(
       },
     },
   },
+  {
+    files: ['tests/**/*.mjs'],
+    languageOptions: {
+      globals: {
+        URL: 'readonly',
+      },
+    },
+  },
   ...tseslint.configs.recommended,
 );

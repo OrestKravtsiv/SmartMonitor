@@ -50,6 +50,77 @@ npm run dev
 
 > Значення `VITE_*` вбудовуються у клієнтський код і доступні браузеру. Не зберігайте в них секрети або приватні ключі.
 
+## Firebase та локальні емулятори
+
+Firebase CLI входить у dev-залежності проєкту та встановлюється командою `npm ci`. Конфігурація Firebase зберігається у `firebase.json`, локальний проєкт-аліас — у `.firebaserc`, а правила й складені індекси — у `firestore.rules` та `firestore.indexes.json`.
+
+Для Firebase Emulator Suite потрібен JDK 21 або новіший.
+
+Запустіть Auth і Firestore Emulator Suite:
+
+```powershell
+Copy-Item .env.emulator.example .env
+npm run firebase:emulators
+```
+
+Емулятори доступні на `127.0.0.1:9099` (Auth), `127.0.0.1:8085` (Firestore) та `http://127.0.0.1:4000` (панель емуляторів). Порт Firestore змінено на `8085`, щоб не конфліктувати з типовим портом REST backend `8080`. В іншому терміналі запустіть фронтенд через `npm run dev`. Файл `.env.emulator.example` налаштовує Firebase Auth SDK на локальний Auth Emulator.
+
+Правила доступу можна перевірити автоматично на Firestore Emulator:
+
+```powershell
+npm run firebase:emulators:exec -- "npm run test:firestore"
+```
+
+Тести перевіряють заборону читання та запису для анонімного й автентифікованого клієнтів, а також привілейований доступ бекенду в режимі обходу правил.
+
+Правило Firestore блокує всі клієнтські читання й записи відповідно до ADR-4. Серверна частина має використовувати Firebase Admin SDK, який обходить Firestore Security Rules.
+
+## Мінімальний backend і початкові дані Firestore
+
+Тека `backend/` містить Spring Boot утиліту, а не REST API. Вона під’єднує Firebase Admin SDK до Firestore, описує сутності та за явним прапорцем додає початкові демонстраційні дані. Потрібні JDK 21 і Maven 3.9 або новіший.
+
+1. В одному терміналі запустіть емулятори (`npm run firebase:emulators`).
+2. В іншому терміналі з кореня проєкту виконайте:
+
+```powershell
+$env:FIREBASE_PROJECT_ID = "demo-smartmonitor"
+$env:FIREBASE_EMULATOR_HOST = "127.0.0.1:8085"
+$env:FIREBASE_AUTH_EMULATOR_HOST = "127.0.0.1:9099"
+$env:SMARTMONITOR_SEED_ENABLED = "true"
+# Необов'язково: створити seed-admin і seed-operator в Auth Emulator.
+$env:SMARTMONITOR_SEED_AUTH_PASSWORD = "ChangeThisLocalPassword123!"
+mvn -f backend/pom.xml spring-boot:run
+```
+
+Пароль потрібен лише для створення двох користувачів у **Auth Emulator**; якщо змінну не задати, записи профілів у Firestore створяться, але Auth-користувачі не додаються. Не використовуйте демо-пароль у production.
+
+Seeder додає зони, тестові профілі користувачів, пристрої, 12 показань на пристрій, два сповіщення та приклади журналу аудиту. Для кожного показання `expireAt` встановлюється на 180 днів після його часу `ts`. Запуск ідемпотентний: документи з такими ID, що вже існують, пропускаються без перезапису. Емулятори імпортують/експортують стан у `emulator-data/`, щоб зберігати його між запусками на цій машині.
+
+Для хмарного Firestore **не** задавайте `FIREBASE_EMULATOR_HOST`; вкажіть `FIREBASE_PROJECT_ID`, шлях `GOOGLE_APPLICATION_CREDENTIALS` до service-account JSON і `SMARTMONITOR_SEED_ENABLED=true`. Seeder не запускається автоматично без прапорця. Перед запуском у хмарі перевірте ID проєкту: операції Admin SDK обходять Security Rules. Не додавайте service-account ключ у Git.
+
+Цей модуль лише заповнює дані й завершує роботу. Він не надає REST-ендпоїнтів, тому не замінює окремий backend API, потрібний фронтенду.
+
+### TTL для історії показань
+
+Політика TTL для collection group `readings` налаштовується на рівні Google Cloud проєкту, а не Firebase Emulator Suite чи `firestore.indexes.json`. Щоб застосувати 180-денне зберігання до cloud Firestore, встановіть Google Cloud CLI, автентифікуйте його та виконайте:
+
+```powershell
+gcloud firestore fields ttls update expireAt --collection-group=readings --enable-ttl --project=<firebase-project-id>
+```
+
+Backend має записувати у кожен документ показання поле `expireAt` типу Firestore Timestamp, що дорівнює часу показання плюс 180 днів. Видалення TTL асинхронне: прострочені документи можуть залишатися доступними до 24 годин. Команда вимагає прав Google Cloud для зміни TTL-політики й не запускається локальним Firebase Emulator.
+
+### Розгортання правил та індексів у Firebase
+
+Поточний `.firebaserc` навмисно використовує demo project `demo-smartmonitor`, щоб уникнути випадкового розгортання в production. Після прив’язки реального Firebase-проєкту можна розгорнути лише правила та індекси:
+
+```powershell
+firebase use --add
+firebase deploy --only firestore:rules,firestore:indexes
+```
+
+Перевірте вибраний проєкт перед `deploy`. Застосування правил та індексів вимагає автентифікації Firebase CLI й доступу до відповідного проєкту.
+
 ## Запуск через Docker Compose
 
 За потреби спочатку створіть `.env`, як описано вище, потім виконайте:

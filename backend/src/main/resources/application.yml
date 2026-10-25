@@ -1,0 +1,20 @@
+spring:
+  main:
+    web-application-type: none
+  application:
+    name: smartmonitor-seeder
+
+firebase:
+  project-id: ${FIREBASE_PROJECT_ID:demo-smartmonitor}
+  emulator-host: ${FIREBASE_EMULATOR_HOST:}
+  auth-emulator-host: ${FIREBASE_AUTH_EMULATOR_HOST:}
+  credentials-path: ${GOOGLE_APPLICATION_CREDENTIALS:}
+
+smartmonitor:
+  seed:
+    enabled: ${SMARTMONITOR_SEED_ENABLED:false}
+    auth-password: ${SMARTMONITOR_SEED_AUTH_PASSWORD:}
+
+logging:
+  level:
+    com.smartmonitor.backend: INFO
