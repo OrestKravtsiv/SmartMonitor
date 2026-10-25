@@ -19,6 +19,9 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.time.Duration;
 import java.time.Instant;
+import java.time.ZoneOffset;
+import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
 import java.util.HexFormat;
 import java.util.List;
 import java.util.Map;
@@ -36,9 +39,11 @@ import org.springframework.stereotype.Component;
 public class FirestoreSeeder implements ApplicationRunner {
 
     private static final Logger log = LoggerFactory.getLogger(FirestoreSeeder.class);
-    private static final int READING_COUNT = 12;
-    private static final Duration READING_INTERVAL = Duration.ofMinutes(15);
+    private static final int READING_COUNT = 7 * 24;
+    private static final Duration READING_INTERVAL = Duration.ofHours(1);
     private static final Duration READING_RETENTION = Duration.ofDays(180);
+    private static final DateTimeFormatter READING_ID_FORMAT =
+            DateTimeFormatter.ofPattern("yyyyMMdd-HH").withZone(ZoneOffset.UTC);
 
     private final Firestore firestore;
     private final FirebaseApp firebaseApp;
@@ -88,13 +93,21 @@ public class FirestoreSeeder implements ApplicationRunner {
     private void seedDevices() throws ExecutionException, InterruptedException {
         Timestamp createdAt = now();
         seedIfMissing("devices", "SM-1042", device(
-                "Датчик температури 01", "Температура та вологість", "zone-1", 10, 35, "ONLINE", createdAt));
+                "Давач температури 01", "Температура та вологість", "zone-1", 10, 35, "ONLINE", createdAt));
         seedIfMissing("devices", "SM-1043", device(
-                "Датчик температури 02", "Температура та вологість", "zone-2", 10, 35, "ONLINE", createdAt));
+                "Давач температури 02", "Температура та вологість", "zone-2", 10, 35, "ONLINE", createdAt));
         seedIfMissing("devices", "SM-1044", device(
-                "Контроль вологості", "Датчик вологості ґрунту", "zone-3", 15, 80, "OFFLINE", createdAt));
+                "Контроль вологості", "Давач вологості ґрунту", "zone-3", 15, 80, "OFFLINE", createdAt));
         seedIfMissing("devices", "SM-1045", device(
-                "Датчик мікроклімату", "Температура та вологість", "zone-1", 10, 35, "INACTIVE", createdAt));
+                "Давач мікроклімату", "Температура та вологість", "zone-1", 10, 35, "INACTIVE", createdAt));
+        seedIfMissing("devices", "SM-1046", device(
+                "Давач CO₂", "CO₂", "zone-2", 400, 1200, "ONLINE", createdAt));
+        seedIfMissing("devices", "SM-1047", device(
+                "Давач освітленості", "Освітленість", "zone-3", 100, 1000, "ONLINE", createdAt));
+        seedIfMissing("devices", "SM-1048", device(
+                "Давач вібрації", "Вібрація", "zone-1", 0, 10, "ONLINE", createdAt));
+        seedIfMissing("devices", "SM-1049", device(
+                "Давач тиску", "Тиск", "zone-2", 950, 1050, "ONLINE", createdAt));
     }
 
     private DeviceEntity device(
@@ -122,24 +135,29 @@ public class FirestoreSeeder implements ApplicationRunner {
         seedReadings("SM-1043", 19.8, 0.8);
         seedReadings("SM-1044", 72.0, 2.0);
         seedReadings("SM-1045", 22.1, 0.6);
+        seedReadings("SM-1046", 720, 220);
+        seedReadings("SM-1047", 520, 220);
+        seedReadings("SM-1048", 2.1, 1.2);
+        seedReadings("SM-1049", 1008, 10);
     }
 
     private void seedReadings(String deviceId, double average, double variation)
             throws ExecutionException, InterruptedException {
-        Instant base = Instant.now().minus(READING_INTERVAL.multipliedBy(READING_COUNT));
+        Instant base = Instant.now().truncatedTo(ChronoUnit.HOURS)
+                .minus(READING_INTERVAL.multipliedBy(READING_COUNT - 1));
         for (int index = 0; index < READING_COUNT; index++) {
             Instant timestamp = base.plus(READING_INTERVAL.multipliedBy(index));
-            double value = average + Math.sin(index / 2.0) * variation;
-            String readingId = "seed-" + index;
+            double value = average
+                    + Math.sin(index / 8.0) * variation
+                    + Math.sin(index / 24.0) * variation * 0.45;
+            String readingId = "seed-" + READING_ID_FORMAT.format(timestamp);
             ReadingEntity reading = new ReadingEntity(
-                    Timestamp.ofTimeSecondsAndNanos(timestamp.getEpochSecond(), timestamp.getNano()),
+                    timestamp(timestamp),
                     round(value),
                     round(value - variation * 0.2),
                     round(value + variation * 0.2),
                     5,
-                    Timestamp.ofTimeSecondsAndNanos(
-                            timestamp.plus(READING_RETENTION).getEpochSecond(),
-                            timestamp.plus(READING_RETENTION).getNano()));
+                    timestamp(timestamp.plus(READING_RETENTION)));
             seedIfMissing("devices/" + deviceId + "/readings", readingId, reading);
         }
     }
@@ -158,7 +176,7 @@ public class FirestoreSeeder implements ApplicationRunner {
                 null));
         seedIfMissing("alerts", "seed-alert-acknowledged", new AlertEntity(
                 "SM-1042",
-                "Датчик температури 01",
+                "Давач температури 01",
                 "above",
                 timestamp(now.minus(Duration.ofHours(2))),
                 37.2,
@@ -166,6 +184,26 @@ public class FirestoreSeeder implements ApplicationRunner {
                 "ACKNOWLEDGED",
                 "seed-admin",
                 timestamp(now.minus(Duration.ofHours(1)))));
+        seedIfMissing("alerts", "seed-alert-co2-high", new AlertEntity(
+                "SM-1046",
+                "Давач CO₂",
+                "above",
+                timestamp(now.minus(Duration.ofMinutes(8))),
+                1340,
+                1200,
+                "ACTIVE",
+                null,
+                null));
+        seedIfMissing("alerts", "seed-alert-vibration-high", new AlertEntity(
+                "SM-1048",
+                "Давач вібрації",
+                "above",
+                timestamp(now.minus(Duration.ofHours(6))),
+                11.2,
+                10,
+                "ACKNOWLEDGED",
+                "seed-operator",
+                timestamp(now.minus(Duration.ofHours(5)))));
     }
 
     private void seedAuditLogs() throws ExecutionException, InterruptedException {

@@ -9,7 +9,7 @@ const initialZones: Zone[] = [
 const initialDevices: Device[] = [
   {
     id: 'SM-1042',
-    name: 'Датчик температури 01',
+    name: 'Давач температури 01',
     type: 'Температура та вологість',
     zoneId: 'zone-1',
     status: 'online',
@@ -23,7 +23,7 @@ const initialDevices: Device[] = [
   },
   {
     id: 'SM-1043',
-    name: 'Датчик температури 02',
+    name: 'Давач температури 02',
     type: 'Температура та вологість',
     zoneId: 'zone-2',
     status: 'online',
@@ -38,7 +38,7 @@ const initialDevices: Device[] = [
   {
     id: 'SM-1044',
     name: 'Контроль вологості',
-    type: 'Датчик вологості ґрунту',
+    type: 'Давач вологості ґрунту',
     zoneId: 'zone-3',
     status: 'offline',
     temperature: 25.2,
@@ -51,7 +51,7 @@ const initialDevices: Device[] = [
   },
   {
     id: 'SM-1045',
-    name: 'Датчик мікроклімату',
+    name: 'Давач мікроклімату',
     type: 'Температура та вологість',
     zoneId: 'zone-1',
     status: 'inactive',
@@ -79,7 +79,7 @@ const initialAlerts: Alert[] = [
   },
   {
     id: 'alert-2',
-    deviceName: 'Датчик температури 01',
+    deviceName: 'Давач температури 01',
     deviceId: 'SM-1042',
     message: 'Температура повернулася до норми',
     time: 'сьогодні, 09:42',

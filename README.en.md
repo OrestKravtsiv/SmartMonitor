@@ -65,6 +65,8 @@ npm run firebase:emulators
 
 The emulators listen on `127.0.0.1:9099` (Auth), `127.0.0.1:8085` (Firestore), and `http://127.0.0.1:4000` (Emulator UI). Firestore uses port `8085` to avoid conflicting with the REST backend's default port `8080`. In a separate terminal, start the frontend with `npm run dev`. The `.env.emulator.example` file configures the Firebase Auth SDK to use the local Auth Emulator.
 
+To browse the local database graphically, open `http://127.0.0.1:4000` and select **Firestore**. This is the Emulator UI, not the Firebase Console website: local data stays on this computer and does not appear in the cloud project.
+
 Automatically verify the Firestore rules using the Firestore Emulator:
 
 ```powershell
@@ -83,7 +85,7 @@ The `backend/` directory contains a Spring Boot utility, not a REST API. It conn
 2. In another terminal, from the repository root, run:
 
 ```powershell
-$env:FIREBASE_PROJECT_ID = "demo-smartmonitor"
+$env:FIREBASE_PROJECT_ID = "smartmonitor-2006"
 $env:FIREBASE_EMULATOR_HOST = "127.0.0.1:8085"
 $env:FIREBASE_AUTH_EMULATOR_HOST = "127.0.0.1:9099"
 $env:SMARTMONITOR_SEED_ENABLED = "true"
@@ -94,9 +96,11 @@ mvn -f backend/pom.xml spring-boot:run
 
 The password is only used to create the two users in the **Auth Emulator**. If it is omitted, Firestore profile documents are seeded, but Auth users are not created. Do not use the demo password in production.
 
-The seeder inserts zones, demo user profiles, devices, 12 readings per device, two alerts, and sample audit log entries. Each reading's `expireAt` is set to 180 days after its `ts`. Seeding is idempotent: documents whose IDs already exist are skipped and not overwritten. The emulator imports/exports its state to `emulator-data/` to preserve it between runs on this machine.
+The seeder inserts 3 zones, demo user profiles, 8 devices with different sensor types, 168 hourly readings per device covering the last 7 days, 4 active/acknowledged alerts, and sample audit log entries. Each reading's `expireAt` is set to 180 days after its `ts`. Seeding is idempotent: documents whose IDs already exist are skipped and not overwritten. The emulator imports/exports its state to `emulator-data/` to preserve it between runs on this machine.
 
 For cloud Firestore, do **not** set `FIREBASE_EMULATOR_HOST`; set `FIREBASE_PROJECT_ID`, `GOOGLE_APPLICATION_CREDENTIALS` to the service-account JSON path, and `SMARTMONITOR_SEED_ENABLED=true`. The seeder is disabled by default. Verify the project ID before running in the cloud: Admin SDK operations bypass Security Rules. Never commit a service-account key.
+
+To later show the same demo dataset in Firebase Console, run the seeder against the selected cloud project; it creates the same sample documents there, but the local database is not automatically synchronized or copied. Moving other existing local data would require a separate export/import step.
 
 This module only seeds data and exits. It does not expose REST endpoints and does not replace the separate backend API required by the frontend.
 
@@ -112,7 +116,7 @@ The backend must write an `expireAt` field of Firestore Timestamp type on each r
 
 ### Deploy Firestore rules and indexes
 
-The current `.firebaserc` intentionally points to the demo project `demo-smartmonitor` to prevent accidental production deployment. After linking a real Firebase project, deploy only the rules and indexes:
+The current `.firebaserc` intentionally points to the demo project `smartmonitor-2006` to prevent accidental production deployment. After linking a real Firebase project, deploy only the rules and indexes:
 
 ```powershell
 firebase use --add

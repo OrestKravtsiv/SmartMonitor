@@ -5,7 +5,7 @@ spring:
     name: smartmonitor-seeder
 
 firebase:
-  project-id: ${FIREBASE_PROJECT_ID:demo-smartmonitor}
+  project-id: ${FIREBASE_PROJECT_ID:smartmonitor-2006}
   emulator-host: ${FIREBASE_EMULATOR_HOST:}
   auth-emulator-host: ${FIREBASE_AUTH_EMULATOR_HOST:}
   credentials-path: ${GOOGLE_APPLICATION_CREDENTIALS:}

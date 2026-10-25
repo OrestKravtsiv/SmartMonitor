@@ -122,7 +122,7 @@ export class DeviceForm extends LitElement {
         <input
           id="device-name"
           name="name"
-          placeholder="Наприклад, Датчик температури 03"
+          placeholder="Наприклад, Давач температури 03"
           .value=${this.device?.name ?? ''}
           maxlength="100"
           required
@@ -135,8 +135,8 @@ export class DeviceForm extends LitElement {
           required
         >
           <option value="Температура та вологість">Температура та вологість</option>
-          <option value="Датчик вологості ґрунту">Датчик вологості ґрунту</option>
-          <option value="Датчик якості повітря">Датчик якості повітря</option>
+          <option value="Давач вологості ґрунту">Давач вологості ґрунту</option>
+          <option value="Давач якості повітря">Давач якості повітря</option>
         </select>
         <label for="device-zone">Зона</label>
         <select

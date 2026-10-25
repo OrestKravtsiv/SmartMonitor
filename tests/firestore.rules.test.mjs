@@ -12,7 +12,7 @@ let environment;
 
 before(async () => {
   environment = await initializeTestEnvironment({
-    projectId: 'demo-smartmonitor',
+    projectId: 'smartmonitor-2006',
     firestore: {
       host: '127.0.0.1',
       port: 8085,

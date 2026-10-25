@@ -340,7 +340,7 @@ interface ReadingDto extends Partial<Reading> {
 }
 
 function normalizeDevice(device: DeviceDto): Device {
-  const sensorType = device.sensorType ?? device.type ?? 'Датчик';
+  const sensorType = device.sensorType ?? device.type ?? 'Давач';
   const isHumidity = /humid|moist|волог|ґрунт/iu.test(sensorType);
   const unit = device.unit ?? (isHumidity ? '%' : '°C');
   const currentValue = device.latestValue ?? device.currentValue ?? 0;

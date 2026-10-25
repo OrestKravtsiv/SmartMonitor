@@ -24,7 +24,7 @@ public class FirebaseAdminConfiguration {
 
     @Bean(destroyMethod = "delete")
     FirebaseApp firebaseApp(
-            @Value("${firebase.project-id:${FIREBASE_PROJECT_ID:demo-smartmonitor}}") String projectId,
+            @Value("${firebase.project-id:${FIREBASE_PROJECT_ID:smartmonitor-2006}}") String projectId,
             @Value("${firebase.emulator-host:${FIREBASE_EMULATOR_HOST:}}") String emulatorHost,
             @Value("${firebase.credentials-path:${GOOGLE_APPLICATION_CREDENTIALS:}}") String credentialsPath)
             throws IOException {
@@ -60,7 +60,7 @@ public class FirebaseAdminConfiguration {
     @Bean(destroyMethod = "close")
     Firestore firestore(
             FirebaseApp firebaseApp,
-            @Value("${firebase.project-id:${FIREBASE_PROJECT_ID:demo-smartmonitor}}") String projectId,
+            @Value("${firebase.project-id:${FIREBASE_PROJECT_ID:smartmonitor-2006}}") String projectId,
             @Value("${firebase.emulator-host:${FIREBASE_EMULATOR_HOST:}}") String emulatorHost) {
         if (emulatorHost.isBlank()) {
             return FirestoreClient.getFirestore(firebaseApp);
